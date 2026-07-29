@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../POLÍGONOS/App_Web_Affect/App_Web_Affect"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "PLATAFORMA_DPYSG"
+	}
+}
