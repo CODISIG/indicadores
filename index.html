@@ -10,6 +10,41 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         <link rel="stylesheet" href="./styles/styles.css">
         <link rel="stylesheet" href="./styles/styles_1.css">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+        <style>
+            body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            }
+
+            header {
+            padding: 14px 20px;
+            background: #174a68;
+            color: white;
+            }
+
+            header h2 {
+            margin: 0;
+            }
+
+            #mapa {
+            width: 60vw;
+            height: 65vh;
+            margin: 0 auto;
+            position: absolute;
+            right: 20px;
+            /* top: 50%;
+            transform: translateY(-50%); */
+            }
+            
+            #miIframe {
+            width: 35vw;
+            height: 65vh;
+            border: none;
+            margin-left: 10px;
+            flex-shrink: 0;
+            }
+        </style>
     </head>
 
 
@@ -39,42 +74,492 @@
             <!--INFO CARD INDICADORES ESTRATÉGICOS-->
             <div class="info-card">
                 <div class="info-text">
-                    ANÁLISIS GEOESPACIAL DE PROYECTOS FERROVIARIOS <br>INDICADORES ESTRATÉGICOS 2026 - 2027
+                    ANÁLISIS GEOESPACIAL DE PROYECTOS FERROVIARIOS
                 </div>
             </div>
            
-           
-            <div class="actions-container">
-                <iframe width="1400" height="700" src="https://datastudio.google.com/embed/reporting/22d03ec6-647e-487e-ac95-c2eeab723827/page/L714F" frameborder="0" style="border:0" allowfullscreen sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
+           <div id="mapa"></div>
 
-               
-                </div>
-                <!-- /.card -->
+            <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+            <div class="actions-container"></div>
+                <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+                <!-- <script>
+                    // ==================================================
+                    // 1. INICIALIZAR MAPA
+                    // ==================================================
+
+                    // Límites geográficos aproximados de México
+                    const limitesMexico = L.latLngBounds(
+                    [14.0, -118.5],  // Suroeste
+                    [33.5, -86.0]    // Noreste
+                    );
+
+                    // Crear el mapa limitado a México
+                    const mapa = L.map("mapa", {
+                    center: [23.6345, -102.5528],
+                    zoom: 5,
+                    minZoom: 4,
+                    maxZoom: 18,
+                    maxBounds: limitesMexico,
+                    maxBoundsViscosity: 1.0
+                    });
+
+                    // Mapa base
+                    L.tileLayer(
+                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                    {
+                        attribution: "&copy; OpenStreetMap contributors",
+                        maxZoom: 18
+                    }
+                    ).addTo(mapa);
+
+                    // Ajustar la vista inicial a México
+                    mapa.fitBounds(limitesMexico);
+
+
+                    // ==================================================
+                    // 2. CAPA GEOJSON DE NÚCLEOS
+                    // ==================================================
+                        fetch('./PERIMETRALES_COMPILADO.geojson')
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Error HTTP: ' + response.status);
+                            }
+                            return response.json();
+                        })
+                        .then(zonasGeoJSON => {
+                            const capaZonas = L.geoJSON(zonasGeoJSON, {
+                                onEachFeature: (feature, layer) => {
+                                    if (feature.properties) {
+                                        layer.bindPopup(
+                                            Object.entries(feature.properties)
+                                                .map(([clave, valor]) =>
+                                                    `<b>${clave}:</b> ${valor ?? ''}`
+                                                )
+                                                .join('<br>')
+                                        );
+                                    }
+                                }
+                            }).addTo(mapa);
+
+                            if (capaZonas.getLayers().length > 0) {
+                                mapa.fitBounds(capaZonas.getBounds());
+                            }
+                        })
+                        .catch(error => console.error(error));
+                                
+                    
+
+
+                    // ==================================================
+                    // 2. CAPA GEOJSON DE AFECTACIONES
+                    // ==================================================
+                    fetch('./AFECTACIONES_COMPILADO.geojson')
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Error HTTP: ' + response.status);
+                            }
+                            return response.json();
+                        })
+                        .then(rutasGeoJSON => {
+                            const capaAfectaciones = L.geoJSON(rutasGeoJSON, {
+                                onEachFeature: (feature, layer) => {
+                                    if (feature.properties) {
+                                        layer.bindPopup(
+                                            Object.entries(feature.properties)
+                                                .map(([clave, valor]) =>
+                                                    `<b>${clave}:</b> ${valor ?? ''}`
+                                                )
+                                                .join('<br>')
+                                        );
+                                    }
+                                }
+                            }).addTo(mapa);
+
+                            if (capaAfectaciones.getLayers().length > 0) {
+                                mapa.fitBounds(capaAfectaciones.getBounds());
+                            }
+                        })
+                        .catch(error => console.error(error));
+
+
+
+                    // ==================================================
+                    // 3. CAPA GEOJSON Derechos de VÍA
+                    // ==================================================
+
+                     fetch('./DDV_COMPILATORIO.geojson')
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Error HTTP: ' + response.status);
+                            }
+                            return response.json();
+                        })
+                        .then(rutasGeoJSON => {
+                            const capaRutas = L.geoJSON(rutasGeoJSON, {
+                                onEachFeature: (feature, layer) => {
+                                    if (feature.properties) {
+                                        layer.bindPopup(
+                                            Object.entries(feature.properties)
+                                                .map(([clave, valor]) =>
+                                                    `<b>${clave}:</b> ${valor ?? ''}`
+                                                )
+                                                .join('<br>')
+                                        );
+                                    }
+                                }
+                            }).addTo(mapa);
+
+                            if (capaRutas.getLayers().length > 0) {
+                                mapa.fitBounds(capaRutas.getBounds());
+                            }
+                        })
+                        .catch(error => console.error(error));
+
+
                 
 
+                    // ==================================================
+                    // 5. FUNCIÓN PARA MOSTRAR ATRIBUTOS
+                    // ==================================================
 
-              
+                    function mostrarAtributos(feature, layer) {
+                    const propiedades = feature.properties || {};
+
+                    const contenido = document.createElement("div");
+                    const titulo = document.createElement("strong");
+
+                    titulo.textContent = propiedades.nombre || "INFORMACIÓN TÉCNICA";
+                    contenido.appendChild(titulo);
+
+                    Object.entries(propiedades).forEach(([clave, valor]) => {
+                        const fila = document.createElement("div");
+                        const etiqueta = document.createElement("b");
+                        const dato = document.createElement("span");
+
+                        etiqueta.textContent = clave + ": ";
+                        dato.textContent = valor == null ? "Sin dato" : String(valor);
+
+                        fila.append(etiqueta, dato);
+                        contenido.appendChild(fila);
+                    });
+
+                    layer.bindPopup(contenido);
+                    }
+
+
+                    // ==================================================
+                    // 6. CREAR LAS CAPAS
+                    // ==================================================
+
+                    
+                    const capaAfectaciones = L.geoJSON(afectacionesGeoJSON, {
+                    style: {
+                        color: "#ED700E",
+                        weight: 2,
+                        fillColor: "#CF8B55",
+                        fillOpacity: 0.6
+                    },
+                    onEachFeature: mostrarAtributos
+                    });
+
+                    const capaZonas = L.geoJSON(zonasGeoJSON, {
+                    style: {
+                        color: "#F52727",
+                        weight: 2,
+                        fillColor: "#CF8B55",
+                        fillOpacity: 0
+                    },
+                    onEachFeature: mostrarAtributos
+                    });
+
+                    const capaRutas = L.geoJSON(rutasGeoJSON, {
+                    style: {
+                        color: "#5427F5",
+                        weight: 3
+                    },
+                    onEachFeature: mostrarAtributos
+                    });
+
+                    
+
+
+                    // ==================================================
+                    // 7. AGREGAR CAPAS AL MAPA AUTOMÁTICAMENTE
+                    // ==================================================
+
+                    capaAfectaciones.addTo(mapa);
+                    capaZonas.addTo(mapa);
+                    capaRutas.addTo(mapa);
+                   
+
+
+                    // ==================================================
+                    // 8. CONTROL PARA ACTIVAR Y DESACTIVAR CAPAS
+                    // ==================================================
+                    
+                    
+                    const capas = {
+                    "PERIMETRALES": capaZonas,
+                    "DERECHO DE VÍA": capaRutas,
+                    "AFECTACIONES": capaAfectaciones
+                    };
+
+                    L.control.layers(null, capas, {
+                    collapsed: false
+                    }).addTo(mapa);
+
+
+                    // ==================================================
+                    // 9. AJUSTAR ZOOM A TODAS LAS CAPAS
+                    // ==================================================
+
+                    const grupo = L.featureGroup([
+                    capaZonas,
+                    capaRutas,
+                    capaAfectaciones,
+                    ]);
+
+                    if (grupo.getBounds().isValid()) {
+                    mapa.fitBounds(grupo.getBounds(), {
+                        padding: [25, 25]
+                    });
+                    }
+                </script> -->
+                
+
+                <script>
+                    // ==================================================
+                    // 1. INICIALIZAR MAPA
+                    // ==================================================
+
+                    const limitesMexico = L.latLngBounds(
+                        [14.0, -118.5],
+                        [33.5, -86.0]
+                    );
+
+                    const mapa = L.map("mapa", {
+                        center: [23.6345, -102.5528],
+                        zoom: 5,
+                        minZoom: 4,
+                        maxZoom: 18,
+                        maxBounds: limitesMexico,
+                        maxBoundsViscosity: 1.0
+                    });
+
+                    const mapaBase = L.tileLayer(
+                        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                        {
+                            attribution: "&copy; OpenStreetMap contributors",
+                            maxZoom: 18
+                        }
+                    ).addTo(mapa);
+
+                    mapa.fitBounds(limitesMexico);
+
+
+                    // ==================================================
+                    // 2. FUNCIÓN PARA MOSTRAR ATRIBUTOS
+                    // ==================================================
+
+                    function mostrarAtributos(feature, layer) {
+                        const propiedades = feature.properties || {};
+
+                        const contenido = document.createElement("div");
+                        const titulo = document.createElement("strong");
+
+                        titulo.textContent =
+                            propiedades.nombre || "INFORMACIÓN TÉCNICA";
+
+                        contenido.appendChild(titulo);
+
+                        Object.entries(propiedades).forEach(([clave, valor]) => {
+                            const fila = document.createElement("div");
+                            const etiqueta = document.createElement("b");
+                            const dato = document.createElement("span");
+
+                            etiqueta.textContent = clave + ": ";
+                            dato.textContent =
+                                valor == null ? "Sin dato" : String(valor);
+
+                            fila.append(etiqueta, dato);
+                            contenido.appendChild(fila);
+                        });
+
+                        layer.bindPopup(contenido);
+                    }
+
+
+                    // ==================================================
+                    // 3. CREAR LAS TRES CAPAS VACÍAS CON SUS ESTILOS
+                    // ==================================================
+
+                    // PERIMETRALES: contorno rojo
+                    const capaZonas = L.geoJSON(null, {
+                        style: {
+                            color: "#F52727",
+                            weight: 2,
+                            fillColor: "#CF8B55",
+                            fillOpacity: 0.15
+                        },
+                        onEachFeature: mostrarAtributos
+                    });
+
+                    // AFECTACIONES: naranja
+                    const capaAfectaciones = L.geoJSON(null, {
+                        style: {
+                            color: "#ED700E",
+                            weight: 2,
+                            fillColor: "#CF8B55",
+                            fillOpacity: 0.6
+                        },
+                        pointToLayer: (feature, latlng) =>
+                            L.circleMarker(latlng, {
+                                radius: 6,
+                                color: "#ED700E",
+                                fillColor: "#CF8B55",
+                                fillOpacity: 0.8,
+                                weight: 2
+                            }),
+                        onEachFeature: mostrarAtributos
+                    });
+                    
+
+                    // DERECHOS DE VÍA: azul-violeta
+                    const capaRutas = L.geoJSON(null, {
+                        style: {
+                            color: "#5427F5",
+                            weight: 3,
+                            opacity: 1
+                        },
+                        pointToLayer: (feature, latlng) =>
+                            L.circleMarker(latlng, {
+                                radius: 5,
+                                color: "#5427F5",
+                                fillColor: "#8B7AF5",
+                                fillOpacity: 0.9
+                            }),
+                        onEachFeature: mostrarAtributos
+                    });
+                    
+
+
+                    // ==================================================
+                    // 4. PANEL DE CAPAS
+                    // ==================================================
+
+                    const capas = {
+                        "PERIMETRALES": capaZonas,
+                        "DERECHO DE VÍA": capaRutas,
+                        "AFECTACIONES": capaAfectaciones
+                    };
+
+                    L.control.layers(
+                        null, 
+                        capas,
+                        {
+                            collapsed: false,
+                            position: "topright"
+                        }
+                    ).addTo(mapa);
+
+
+                    // ==================================================
+                    // 5. CARGAR LOS GEOJSON EXTERNOS
+                    // ==================================================
+
+                    async function cargarGeoJSON(url, capa) {
+                        const respuesta = await fetch(url);
+
+                        if (!respuesta.ok) {
+                            throw new Error(
+                                `Error HTTP ${respuesta.status}: ${url}`
+                            );
+                        }
+
+                        const datos = await respuesta.json();
+                        capa.addData(datos);
+                    }
+
+                    async function iniciarCapas() {
+                        const archivos = [
+                            {
+                                nombre: "PERIMETRALES",
+                                url: "./PERIMETRALES_COMPILADO.geojson",
+                                capa: capaZonas
+                            },
+                            {
+                                nombre: "AFECTACIONES",
+                                url: "./AFECTACIONES_COMPILADO.geojson",
+                                capa: capaAfectaciones
+                            },
+                            {
+                                nombre: "DERECHO DE VÍA",
+                                url: "./DDV_COMPILATORIO.geojson",
+                                capa: capaRutas
+                            }
+                        ];
+
+                        const resultados = await Promise.allSettled(
+                            archivos.map(item =>
+                                cargarGeoJSON(item.url, item.capa)
+                            )
+                        );
+
+                        resultados.forEach((resultado, i) => {
+                            if (resultado.status === "rejected") {
+                                console.error(
+                                    `Error en ${archivos[i].nombre}:`,
+                                    resultado.reason
+                                );
+                            }
+                        });
+
+                        // Ajustar el mapa a los datos cargados
+                        const grupo = L.featureGroup(
+                            archivos
+                                .filter((item, i) =>
+                                    resultados[i].status === "fulfilled" &&
+                                    item.capa.getLayers().length > 0
+                                )
+                                .map(item => item.capa)
+                        );
+
+                        if (grupo.getLayers().length > 0) {
+                            mapa.fitBounds(grupo.getBounds(), {
+                                padding: [25, 25],
+                                maxZoom: 12
+                            });
+                        }
+                    }
+
+                    iniciarCapas().catch(console.error);
+                </script>
+    
+            
+                
+                <iframe id="miIframe" src="https://datastudio.google.com/embed/reporting/22d03ec6-647e-487e-ac95-c2eeab723827/page/L714F"></iframe>
+                </div>
             </div>
+
+
             <!--end::App Main-->
             <!--begin::Footer-->
             <footer class="app-footer">
-            <!--begin::To the end-->
-            <div class="float-end d-none d-sm-inline">INDICADORES ESTRATÉGICOS 2026-2027
-                <a href="./Docs/ANALISIS GEOESPACIAL E INDICADORES_ESTRATEGICOS_FERROVIARIOS_2026-2027.pdf" target="_blank">
-                    CONSULTA Y DESGARGA LA PRESENTACIÓN PPTX
-                </a>
-            </div>
-            <!--end::To the end-->
-            <!--begin::Copyright-->
-            <strong>
-                Dirección General de Catrasto y Asistencia Técnica<BR> Dirección de Productos y Sistemas Geoespaciales
-            </strong>
-            <!--end::Copyright-->
+                <!--begin::To the end-->
+                <div class="float-end d-none d-sm-inline">INDICADORES ESTRATÉGICOS 2026-2027
+                    <a href="./Docs/ANALISIS GEOESPACIAL E INDICADORES_ESTRATEGICOS_FERROVIARIOS_2026-2027.pdf">
+                        <BR>CONSULTA Y DESGARGA LA PRESENTACIÓN PPTX
+                    </a>
+                </div>
+                <!--end::To the end-->
+                <!--begin::Copyright-->
+                <strong>
+                    Dirección General de Catrasto y Asistencia Técnica<BR> Dirección de Productos y Sistemas Geoespaciales
+                </strong>
+                <!--end::Copyright-->
             </footer>
             <!--end::Footer-->
-
-            
-            
         </div>
 
     </body>
